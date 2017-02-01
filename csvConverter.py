@@ -1,6 +1,6 @@
 import sys, os
 
-# designed to convert .txt w/spaces to .csv file
+# designed to convert .txt w/spaces or tabs to .csv file
 def parseFile(infile=None):
     outfile=""
 
