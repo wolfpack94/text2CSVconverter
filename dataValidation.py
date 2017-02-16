@@ -59,24 +59,42 @@ Removes rows with nan
 def clean(df):
     length = len(df)
     df = df.dropna()
-    print((str(length - len(df)) + " Rows cleaned"))
+    print((str(length - len(df)) + "/" + str(length) + " Rows cleaned"))
+
+
+def import_data(filename, delim):
+    try:
+        data = pd.read_csv(filename, sep=delim)
+    except:
+        print("Failed to open " + filename);
+    return data 
 
 
 def main():
-    input_file = None
+    b_file = None
+    w_file = None
 
     if len(sys.argv) > 1:
-        input_file = sys.argv[1]
+        b_file = sys.argv[1]
+        w_file = sys.argv[2]
+
     else:
         print("Usage: python dataValidation.py [input file]")
         exit()
 
-    print("Importing file...")
-    data = pd.read_csv(input_file, sep='\t')
-    df = pd.DataFrame(data, columns=['State Code', 'County Code', 'Year', 'Month', 'Births'])
+    b_df = import_data(b_file,"\t")
+    w_df = import_data(w_file,",")
 
-    print(("Cleaning file " + input_file))
-    clean(df)
+    #Convert to dataframe
+    print("Selecting relevant dimensions for " + b_file)
+    b_df = pd.DataFrame(b_df, columns=["State Code", "County Code", "Year", "Month", "Births"])
+    print("Selecting relevant dimensions for " + w_file)
+    w_df = pd.DataFrame(w_df, columns=["STATE_FIPS", "CZ_FIPS", "BEGIN_YEARMONTH", "EVENT_TYPE"])
+
+    print("Cleaning file " + b_file)
+    clean(b_df)
+    print("Cleaning file " + w_file)
+    clean(w_df)
 
     print("Analysis Complete")
 
