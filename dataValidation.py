@@ -111,6 +111,9 @@ def main():
     #print(w_df.columns)
     print(grouped)
 
+    b_df['YEAR_MONTH'] = b_df["Year"].map(str) + b_df["Month"].apply(pad_values_2)
+    print(b_df.values)
+
     print("Analysis Complete")
 
 if __name__ == "__main__":
