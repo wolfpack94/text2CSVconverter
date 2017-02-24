@@ -60,6 +60,7 @@ def clean(df):
     length = len(df)
     df = df.dropna()
     print((str(length - len(df)) + "/" + str(length) + " Rows cleaned"))
+    return df
 
 
 def import_data(filename, delim):
@@ -95,24 +96,24 @@ def main():
 
     #Convert to dataframe
     print("Selecting relevant dimensions for " + b_file)
-    b_df = pd.DataFrame(b_df, columns=["State Code", "County Code", "Year", "Month", "Births"])
+    b_df = pd.DataFrame(b_df, columns=["State Code", "County Code", "Year", "Month Code", "Births"])
     print("Selecting relevant dimensions for " + w_file)
     w_df = pd.DataFrame(w_df, columns=["STATE_FIPS", "CZ_FIPS", "BEGIN_YEARMONTH", "EVENT_TYPE"])
 
     #Data cleaning
     print("Cleaning file " + b_file)
-    clean(b_df)
+    b_df = clean(b_df)
     print("Cleaning file " + w_file)
-    clean(w_df)
+    w_df = clean(w_df)
 
     #Integration
     w_df['FIPS'] = w_df["STATE_FIPS"].apply(pad_values_2) + w_df["CZ_FIPS"].apply(pad_values_3)
     grouped = w_df.groupby(['FIPS', 'BEGIN_YEARMONTH', 'EVENT_TYPE']).size()
     #print(w_df.columns)
-    print(grouped)
+    #print(grouped)
 
-    b_df['YEAR_MONTH'] = b_df["Year"].map(str) + b_df["Month"].apply(pad_values_2)
-    print(b_df.values)
+    b_df['YEAR_MONTH'] = b_df["Year"].map(str) + b_df["Month Code"].apply(pad_values_2)
+    print(b_df.values[-30:-1])
 
     print("Analysis Complete")
 
