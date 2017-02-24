@@ -70,6 +70,14 @@ def import_data(filename, delim):
     return data 
 
 
+def pad_values_2(x):
+    return str(x).zfill(2)
+
+
+def pad_values_3(x):
+    return str(x).zfill(3)
+
+
 def main():
     b_file = None
     w_file = None
@@ -91,10 +99,17 @@ def main():
     print("Selecting relevant dimensions for " + w_file)
     w_df = pd.DataFrame(w_df, columns=["STATE_FIPS", "CZ_FIPS", "BEGIN_YEARMONTH", "EVENT_TYPE"])
 
+    #Data cleaning
     print("Cleaning file " + b_file)
     clean(b_df)
     print("Cleaning file " + w_file)
     clean(w_df)
+
+    #Integration
+    w_df['FIPS'] = w_df["STATE_FIPS"].apply(pad_values_2) + w_df["CZ_FIPS"].apply(pad_values_3)
+    grouped = w_df.groupby(['FIPS', 'BEGIN_YEARMONTH', 'EVENT_TYPE']).size()
+    #print(w_df.columns)
+    print(grouped)
 
     print("Analysis Complete")
 
