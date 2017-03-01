@@ -108,7 +108,11 @@ def main():
 
     #Integration
     w_df['FIPS'] = w_df["STATE_FIPS"].apply(pad_values_2) + w_df["CZ_FIPS"].apply(pad_values_3)
+    b_df['FIPS'] = b_df["State Code"].apply(pad_values_2) + b_df["County Code"].apply(pad_values_3)
     grouped = w_df.groupby(['FIPS', 'BEGIN_YEARMONTH', 'EVENT_TYPE']).size()
+    joined_w_df = pd.merge(w_df, b_df, left_on='FIPS', right_on='FIPS')
+    print(w_df.columns)
+    print(b_df.columns)
     #print(w_df.columns)
     #print(grouped)
 
