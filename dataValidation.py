@@ -1,5 +1,6 @@
 import sys, os
 import pandas as pd
+import numpy as np
 
 def pull_max_row_len(infile):
     max_len = 0
@@ -109,15 +110,18 @@ def main():
     #Integration
     w_df['FIPS'] = w_df["STATE_FIPS"].apply(pad_values_2) + w_df["CZ_FIPS"].apply(pad_values_3)
     b_df['FIPS'] = b_df["State Code"].apply(pad_values_2) + b_df["County Code"].apply(pad_values_3)
-    grouped = w_df.groupby(['FIPS', 'BEGIN_YEARMONTH', 'EVENT_TYPE']).size()
-    joined_w_df = pd.merge(w_df, b_df, left_on='FIPS', right_on='FIPS')
-    print(w_df.columns)
-    print(b_df.columns)
-    #print(w_df.columns)
-    #print(grouped)
-
     b_df['YEAR_MONTH'] = b_df["Year"].map(str) + b_df["Month Code"].apply(pad_values_2)
-    print(b_df.values[-30:-1])
+    w_df.rename(columns={'BEGIN_YEARMONTH':'YEAR_MONTH'}, inplace=True)
+    grouped = w_df.groupby(['YEAR_MONTH', 'FIPS', 'EVENT_TYPE'], as_index=False).size()
+    #grouped = grouped.reset_index()
+    #grouped = grouped.pivot(index='YEAR_MONTH', columns=w_df['EVENT_TYPE'].unique())
+    dup_w_df = w_df['EVENT_TYPE']
+    #joined_df = pd.merge(w_df, b_df, on='FIPS').merge(b_df, w_df, on='YEAR_MONTH')
+    #print(w_df.columns)
+    #print(b_df.columns)
+    #print(list(w_df['EVENT_TYPE'].unique()))
+    #for name, event in grouped:
+    #    print(event)
 
     print("Analysis Complete")
 
