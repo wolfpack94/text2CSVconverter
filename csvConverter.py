@@ -1,7 +1,7 @@
 import sys, os
 
 # designed to convert .txt w/spaces or tabs to .csv file
-def parseFile(infile=None):
+def parseFile(infile=None, delim="\t"):
     outfile=""
 
     # creates output directory for files if directory does not exist
@@ -23,7 +23,7 @@ def parseFile(infile=None):
         print "Cannot open given file " + str(infile) + " or " + str(outfile)
 
     for line in read_file:
-        new_line = line.split()
+        new_line = line.split(delim)
         out_string = form_output_string(new_line)
         write_file.write(out_string+'\n')
 
@@ -41,12 +41,14 @@ def form_output_string(elementlist):
     return output_string
 
 def main():
+    delimiter = "\t"
     if len(sys.argv) > 1:
         input = str(sys.argv[1])
+        delimiter = str(sys.argv[2])
     else:
         print "Usage: python tabReplace.py [filename]"
         exit()
-    parseFile(infile=input)
+    parseFile(infile=input, delim=delimiter)
 
 
 if __name__ == "__main__":
