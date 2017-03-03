@@ -80,7 +80,14 @@ def pad_values_3(x):
     return str(x).zfill(3)
 
 
+def categorize_weather(weather_type, output_file=None):
+    for weather in weather_type:
+        level = str(input("Enter level for {}: ".format(weather)))
+        output_file.write("{},{}".format(weather, level))
+
+
 def main():
+    LEVELS = "../Datasets/levels.txt"
     b_file = None
     w_file = None
 
@@ -91,6 +98,12 @@ def main():
     else:
         print("Usage: python dataValidation.py [input file]")
         exit()
+    
+    if not os.path.isfile(LEVELS):
+        try:
+            levels_file = open(LEVELS, "w")
+        except:
+            print("Failed to open")
 
     b_df = import_data(b_file,"\t")
     w_df = import_data(w_file,",")
@@ -112,8 +125,12 @@ def main():
     b_df['FIPS'] = b_df["State Code"].apply(pad_values_2) + b_df["County Code"].apply(pad_values_3)
     b_df['YEAR_MONTH'] = b_df["Year"].map(str) + b_df["Month Code"].apply(pad_values_2)
     w_df.rename(columns={'BEGIN_YEARMONTH':'YEAR_MONTH'}, inplace=True)
-    grouped = w_df.groupby(['YEAR_MONTH', 'FIPS', 'EVENT_TYPE'], as_index=False).count() #.size()
+    grouped = w_df.groupby(['YEAR_MONTH', 'FIPS', 'EVENT_TYPE'], as_index=False).count()
+    # pulls unique weather events and puts them into a list
     unique = grouped['EVENT_TYPE'].unique()
+    if levels_file:
+        categorize_weather(unique, levels_file)
+    levels_file.close()
     for name in unique:
         print(name)
         b_df[name] = 0
