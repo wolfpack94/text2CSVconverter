@@ -112,7 +112,12 @@ def main():
     b_df['FIPS'] = b_df["State Code"].apply(pad_values_2) + b_df["County Code"].apply(pad_values_3)
     b_df['YEAR_MONTH'] = b_df["Year"].map(str) + b_df["Month Code"].apply(pad_values_2)
     w_df.rename(columns={'BEGIN_YEARMONTH':'YEAR_MONTH'}, inplace=True)
-    grouped = w_df.groupby(['YEAR_MONTH', 'FIPS', 'EVENT_TYPE'], as_index=False).size()
+    grouped = w_df.groupby(['YEAR_MONTH', 'FIPS', 'EVENT_TYPE'], as_index=False).count() #.size()
+    unique = grouped['EVENT_TYPE'].unique()
+    for name in unique:
+        print(name)
+        b_df[name] = 0
+    print(b_df.columns)
     #grouped = grouped.reset_index()
     #grouped = grouped.pivot(index='YEAR_MONTH', columns=w_df['EVENT_TYPE'].unique())
     dup_w_df = w_df['EVENT_TYPE']
