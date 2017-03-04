@@ -85,12 +85,16 @@ def categorize_weather(weather_type, output_file=None):
     for weather in weather_type:
         level = str(input("Enter level for {} [l:low, m:moderate, h:high]: ".format(weather)))
         expanded = level_interp[level]
-        output_file.write("{},{}".format(weather, expanded))
+        output_file.write("{},{}\n".format(weather, expanded))
+    if output_file:
+        output_file.close()
 
 
 def main():
+    mapped_events = {}
     LEVELS = "../Datasets/levels.txt"
     levels_file = None
+    levels_read = None
     b_file = None
     w_file = None
 
@@ -111,6 +115,11 @@ def main():
     else:
         try:
             levels_read = open(LEVELS, "r")
+            # read levels file into dictionary for assimilation
+            for line in levels_read:
+                line = line.strip('\n')
+                split = line.split(",")
+                mapped_events[split[0]] = split[1]
         except:
             print("Failed to open {} for reading level data.".format(LEVELS))
             print("Exiting...")
@@ -141,20 +150,15 @@ def main():
     unique = grouped['EVENT_TYPE'].unique()
     if levels_file:
         categorize_weather(unique, levels_file)
-    levels_file.close()
+
     for name in unique:
-        print(name)
-        b_df[name] = 0
-    print(b_df.columns)
+        if mapped_events[name] == 'low' or mapped_events[name] == 'high':
+            print(name)
+            b_df[name] = 0
     #grouped = grouped.reset_index()
     #grouped = grouped.pivot(index='YEAR_MONTH', columns=w_df['EVENT_TYPE'].unique())
     dup_w_df = w_df['EVENT_TYPE']
     #joined_df = pd.merge(w_df, b_df, on='FIPS').merge(b_df, w_df, on='YEAR_MONTH')
-    #print(w_df.columns)
-    #print(b_df.columns)
-    #print(list(w_df['EVENT_TYPE'].unique()))
-    #for name, event in grouped:
-    #    print(event)
 
     print("Analysis Complete")
 
