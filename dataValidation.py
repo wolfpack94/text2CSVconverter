@@ -81,9 +81,11 @@ def pad_values_3(x):
 
 
 def categorize_weather(weather_type, output_file=None):
+    level_interp = {"l":"low", "m":"moderate", "h":"high"}
     for weather in weather_type:
-        level = str(input("Enter level for {}: ".format(weather)))
-        output_file.write("{},{}".format(weather, level))
+        level = str(input("Enter level for {} [l:low, m:moderate, h:high]: ".format(weather)))
+        expanded = level_interp[level]
+        output_file.write("{},{}".format(weather, expanded))
 
 
 def main():
@@ -104,6 +106,14 @@ def main():
             levels_file = open(LEVELS, "w")
         except:
             print("Failed to open")
+            exit()
+    else:
+        try:
+            levels_read = open(LEVELS, "r")
+        except:
+            print("Failed to open {} for reading level data.".format(LEVELS))
+            print("Exiting...")
+            exit()
 
     b_df = import_data(b_file,"\t")
     w_df = import_data(w_file,",")

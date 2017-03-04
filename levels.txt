@@ -1,0 +1,48 @@
+Extreme Cold/Wind Chill,low
+Winter Weather,moderate
+Freezing Fog,low
+Tornado,low
+Thunderstorm Wind,low
+Flash Flood,moderate
+High Wind,low
+Winter Storm,low
+Blizzard,low
+Heavy Snow,moderate
+Dense Fog,moderate
+Frost/Freeze,moderate
+Heavy Rain,low
+Flood,low
+Drought,high
+Cold/Wind Chill,moderate
+Strong Wind,low
+Avalanche,high
+Astronomical Low Tide,moderate
+High Surf,moderate
+Funnel Cloud,low
+Wildfire,moderate
+Ice Storm,low
+Coastal Flood,moderate
+Lightning,low
+Lake-Effect Snow,moderate
+Debris Flow,low
+Marine High Wind,low
+Waterspout,low
+Marine Thunderstorm Wind,low
+Storm Surge/Tide,low
+Rip Current,moderate
+Dust Storm,low
+Sneakerwave,moderate
+Hail,low
+Excessive Heat,high
+Marine Strong Wind,low
+Marine Dense Fog,moderate
+Sleet,low
+Dense Smoke,high
+Hurricane,low
+Tropical Storm,low
+Dust Devil,low
+Marine Hail,low
+Seiche,low
+Tropical Depression,low
+Heat,high
+Tsunami,moderate
