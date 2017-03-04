@@ -90,6 +90,7 @@ def categorize_weather(weather_type, output_file=None):
 
 def main():
     LEVELS = "../Datasets/levels.txt"
+    levels_file = None
     b_file = None
     w_file = None
 
