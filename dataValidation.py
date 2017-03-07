@@ -60,6 +60,7 @@ Removes rows with nan
 def clean(df):
     length = len(df)
     df = df.dropna()
+    df = df.round()
     print((str(length - len(df)) + "/" + str(length) + " Rows cleaned"))
     return df
 
@@ -97,6 +98,7 @@ def main():
     levels_read = None
     b_file = None
     w_file = None
+    unique_w_event = ['YEAR_MONTH', 'FIPS', 'TOTAL_BIRTHS']
 
     if len(sys.argv) > 1:
         b_file = sys.argv[1]
@@ -146,44 +148,51 @@ def main():
     b_df['YEAR_MONTH'] = b_df["Year"].map(str) + b_df["Month Code"].apply(pad_values_2)
     w_df.rename(columns={'BEGIN_YEARMONTH':'YEAR_MONTH'}, inplace=True)
     grouped = w_df.groupby(['YEAR_MONTH', 'FIPS', 'EVENT_TYPE'], as_index=False).count()
-    merged_inner = pd.merge(w_df, b_df, on='FIPS')
-    next_merge = pd.merge(b_df, merged_inner, left_on='YEAR_MONTH', right_on='YEAR_MONTH_x')
-    print(next_merge['YEAR_MONTH'])
     # pulls unique weather events and puts them into a list
     unique = grouped['EVENT_TYPE'].unique()
     if levels_file:
         categorize_weather(unique, levels_file)
     
+
     new_df = pd.DataFrame(columns=["YEAR_MONTH", "FIPS", "TOTAL_BIRTHS"])
 
     for name in unique:
         if mapped_events[name] == 'low' or mapped_events[name] == 'high':
             print(name)
             new_df[name] = 0
-    for name in grouped:
-        print(name)
-    month = 201501
+
+    month = 0 
+    print(unique_w_event)
     for data in grouped['YEAR_MONTH'].values:
-        print(data)
         if data != month:
             month = data
-        sample_df = grouped.loc[grouped['YEAR_MONTH'] == month]
-        fip_group = sample_df.groupby(['FIPS', 'EVENT_TYPE'], as_index=False).count()
-        #print(list(fip_group.values))
-        #print(fip_group['FIPS'][0])
-        tally = {}
-        fip = fip_group['FIPS'][0]
-        for event in fip_group.values:
-            if event[0] != fip:
-                print(tally)
-                fip = event[0]
-                tally = {}
-            if event[1] not in tally:
-                tally[event[1]] = 1
-            else:
-                tally[event[1]] += 1
+            sample_df = grouped.loc[grouped['YEAR_MONTH'] == month]
+            fip_group = sample_df.groupby(['FIPS', 'EVENT_TYPE'], as_index=False).count()
+            tally = {}
+            fip = fip_group['FIPS'][0]
+            for event in fip_group.values:
+                #New Event
+                if event[0] != fip:
+                    df = pd.DataFrame(data=[[data, fip, 0]], columns=unique_w_event)
+                    for event_type in tally:
+                        df[event_type] = tally[event_type]
+                        b_df = pd.concat([b_df, df], axis=1, join_axes=[b_df.index]) 
+                        #b_df = pd.merge(b_df, df, how='inner', on=['YEAR_MONTH', 'FIPS'])
+                        b_df = b_df.fillna(0)
+                        fip = event[0]
+                        tally = {}
+                #Event type doesn't exist in dict yet
+                if event[1] not in tally:
+                    tally[event[1]] = 1
+                    print("Tally")
+                #Increment event type if exists
+                else:
+                    tally[event[1]] += 1
+                    print("Incrementing {} to {}".format(event[1], tally[event[1]]))
     #grouped = grouped.reset_index()
     #grouped = grouped.pivot(index='YEAR_MONTH', columns=w_df['EVENT_TYPE'].unique())
+
+    print(b_df)
     dup_w_df = w_df['EVENT_TYPE']
     #joined_df = pd.merge(w_df, b_df, on='FIPS').merge(b_df, w_df, on='YEAR_MONTH')
 
