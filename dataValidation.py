@@ -146,15 +146,42 @@ def main():
     b_df['YEAR_MONTH'] = b_df["Year"].map(str) + b_df["Month Code"].apply(pad_values_2)
     w_df.rename(columns={'BEGIN_YEARMONTH':'YEAR_MONTH'}, inplace=True)
     grouped = w_df.groupby(['YEAR_MONTH', 'FIPS', 'EVENT_TYPE'], as_index=False).count()
+    merged_inner = pd.merge(w_df, b_df, on='FIPS')
+    next_merge = pd.merge(b_df, merged_inner, left_on='YEAR_MONTH', right_on='YEAR_MONTH_x')
+    print(next_merge['YEAR_MONTH'])
     # pulls unique weather events and puts them into a list
     unique = grouped['EVENT_TYPE'].unique()
     if levels_file:
         categorize_weather(unique, levels_file)
+    
+    new_df = pd.DataFrame(columns=["YEAR_MONTH", "FIPS", "TOTAL_BIRTHS"])
 
     for name in unique:
         if mapped_events[name] == 'low' or mapped_events[name] == 'high':
             print(name)
-            b_df[name] = 0
+            new_df[name] = 0
+    for name in grouped:
+        print(name)
+    month = 201501
+    for data in grouped['YEAR_MONTH'].values:
+        print(data)
+        if data != month:
+            month = data
+        sample_df = grouped.loc[grouped['YEAR_MONTH'] == month]
+        fip_group = sample_df.groupby(['FIPS', 'EVENT_TYPE'], as_index=False).count()
+        #print(list(fip_group.values))
+        #print(fip_group['FIPS'][0])
+        tally = {}
+        fip = fip_group['FIPS'][0]
+        for event in fip_group.values:
+            if event[0] != fip:
+                print(tally)
+                fip = event[0]
+                tally = {}
+            if event[1] not in tally:
+                tally[event[1]] = 1
+            else:
+                tally[event[1]] += 1
     #grouped = grouped.reset_index()
     #grouped = grouped.pivot(index='YEAR_MONTH', columns=w_df['EVENT_TYPE'].unique())
     dup_w_df = w_df['EVENT_TYPE']
