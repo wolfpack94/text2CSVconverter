@@ -67,9 +67,10 @@ def clean(df):
 
 def import_data(filename, delim):
     try:
-        data = pd.read_csv(filename, sep=delim)
+        data = pd.read_csv(filename, sep=delim, encoding="ISO-8859-1")
     except:
         print("Failed to open " + filename);
+        exit()
     return data
 
 
@@ -98,11 +99,13 @@ def main():
     levels_read = None
     b_file = None
     w_file = None
+    c_file = None
     unique_w_event = ['YEAR_MONTH', 'FIPS', 'TOTAL_BIRTHS']
 
     if len(sys.argv) > 1:
         b_file = sys.argv[1]
         w_file = sys.argv[2]
+        c_file = sys.argv[3]
 
     else:
         print("Usage: python dataValidation.py [input file]")
@@ -129,30 +132,40 @@ def main():
 
     b_df = import_data(b_file,"\t")
     w_df = import_data(w_file,",")
+    c_df = import_data(c_file,",")
 
     #Convert to dataframe
     print("Selecting relevant dimensions for " + b_file)
     b_df = pd.DataFrame(b_df, columns=["State Code", "County Code", "Year", "Month Code", "Births"])
     print("Selecting relevant dimensions for " + w_file)
     w_df = pd.DataFrame(w_df, columns=["STATE_FIPS", "CZ_FIPS", "BEGIN_YEARMONTH", "EVENT_TYPE"])
-
+    print("Selecting relevant dimensions for " + c_file)
+    c_df = pd.DataFrame(c_df, columns=["STATE", "COUNTY", "POPESTIMATE2014"])
 
     #Data cleaning
     print("Cleaning file " + b_file)
     b_df = clean(b_df)
     print("Cleaning file " + w_file)
     w_df = clean(w_df)
+    print("Cleaning file " + c_file)
+    c_df = clean(c_df)
 
+    #Cleaning set of state population data
+    c_df = c_df[c_df.COUNTY != 0]
 
+    #Type casting values to int
     b_df = b_df.astype(int)
+
     #Integration
     w_df['FIPS'] = w_df["STATE_FIPS"].apply(pad_values_2) + w_df["CZ_FIPS"].apply(pad_values_3)
     b_df['FIPS'] = b_df["State Code"].apply(pad_values_2) + b_df["County Code"].apply(pad_values_3)
     b_df['YEAR_MONTH'] = b_df["Year"].map(str) + b_df["Month Code"].apply(pad_values_2)
     w_df.rename(columns={'BEGIN_YEARMONTH':'YEAR_MONTH'}, inplace=True)
+    c_df['FIPS'] = c_df["STATE"].apply(pad_values_2) + c_df["COUNTY"].apply(pad_values_3)
+    c_df.to_csv('merged_census.csv', ',')
     grouped = w_df.groupby(['YEAR_MONTH', 'FIPS'], as_index=False)['EVENT_TYPE'].count()
 
-    combined = pd.DataFrame(columns=['YEAR_MONTH', 'FIPS', 'TOTAL_BIRTHS', 'TOTAL_HIGHLOW'])
+    combined = pd.DataFrame(columns=['YEAR_MONTH', 'FIPS', 'TOTAL_BIRTHS', 'TOTAL_HIGHLOW', 'PERCAPITA'])
 
     b_df = b_df[(b_df.FIPS.str.len() == 5)]
 
@@ -165,14 +178,13 @@ def main():
         yearmonth = str(name[0])
         fips = str(name[1])
         pull_births = b_df[(b_df.YEAR_MONTH == yearmonth) & (b_df.FIPS == fips)]
-        if not pull_births.empty:
-            df = pd.DataFrame(data=[(name[0], name[1], pull_births.Births, name[2])], columns=['YEAR_MONTH', 'FIPS', 'TOTAL_BIRTHS', 'TOTAL_HIGHLOW']) 
+        pull_pop = c_df[(c_df.FIPS == fips)]
+        if not pull_births.empty and not pull_pop.empty:
+            percapita = float(pull_births.Births.values[0]) / float(pull_pop.POPESTIMATE2014.values[0])
+            df = pd.DataFrame(data=[(name[0], name[1], pull_births.Births.values[0], name[2], percapita)], columns=['YEAR_MONTH', 'FIPS', 'TOTAL_BIRTHS', 'TOTAL_HIGHLOW', 'PERCAPITA']) 
             combined = combined.append(df, ignore_index=True)
 
-
-    print(combined)
-    combined = combined.astype(int)
-    combined.to_csv('../Datasets/Integrated2014.csv', ',')
+    combined.to_csv('../Datasets/Integrated2014.csv', ',', encoding="ISO-8859-1")
 
     print("Analysis Complete")
 
