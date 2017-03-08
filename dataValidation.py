@@ -77,7 +77,7 @@ def pad_values_2(x):
 
 
 def pad_values_3(x):
-    return str(x).zfill(3)
+    return str(x).zfill(3)[-3:]
 
 
 def categorize_weather(weather_type, output_file=None):
@@ -143,7 +143,6 @@ def main():
 
 
     b_df = b_df.astype(int)
-
     #Integration
     w_df['FIPS'] = w_df["STATE_FIPS"].apply(pad_values_2) + w_df["CZ_FIPS"].apply(pad_values_3)
     b_df['FIPS'] = b_df["State Code"].apply(pad_values_2) + b_df["County Code"].apply(pad_values_3)
@@ -151,20 +150,10 @@ def main():
     w_df.rename(columns={'BEGIN_YEARMONTH':'YEAR_MONTH'}, inplace=True)
    # grouped = w_df.groupby(['YEAR_MONTH', 'FIPS', 'EVENT_TYPE'], as_index=False).count()
     grouped = w_df.groupby(['YEAR_MONTH', 'FIPS'], as_index=False)['EVENT_TYPE'].count()
-    print(grouped)
 
     combined = pd.DataFrame(columns=['YEAR_MONTH', 'FIPS', 'TOTAL_BIRTHS', 'TOTAL_HIGHLOW'])
-    #add_1 = pd.DataFrame(data=[('201501', '01001', '50', '2')], columns=['YEAR_MONTH', 'FIPS', 'TOTAL_BIRTHS', 'TOTAL_HIGHLOW'])
-    #add_2 = pd.DataFrame(data=[('201501', '01002', '45', '5')], columns=['YEAR_MONTH', 'FIPS', 'TOTAL_BIRTHS', 'TOTAL_HIGHLOW'])
-    #combined = combined.append(add_1, ignore_index=True)
-    #print(combined)
-    #combined = combined.append(add_2, ignore_index=True)
-    #print(combined)
 
-    #print(b_df)
-    # Test query
-    #found_row = b_df[(b_df.YEAR_MONTH == '201401') & (b_df.FIPS == '011003')]
-    #print(found_row)
+    b_df = b_df[(b_df.FIPS.str.len() == 5)]
 
     # pulls unique weather events and puts them into a list
     unique = w_df['EVENT_TYPE'].unique()
@@ -173,43 +162,18 @@ def main():
 
     new_df = pd.DataFrame(columns=["YEAR_MONTH", "FIPS", "TOTAL_BIRTHS"])
 
-    print(b_df[(b_df.YEAR_MONTH == '201401') & (b_df.FIPS == '30038')])
     for name in grouped.values:
         yearmonth = str(name[0])
         fips = str(name[1])
         pull_births = b_df[(b_df.YEAR_MONTH == yearmonth) & (b_df.FIPS == fips)]
         if not pull_births.empty:
-            print("found dates")
             df = pd.DataFrame(data=[(name[0], name[1], pull_births.Births, name[2])], columns=['YEAR_MONTH', 'FIPS', 'TOTAL_BIRTHS', 'TOTAL_HIGHLOW']) 
-            print(df)
             combined = combined.append(df, ignore_index=True)
 
 
     print(combined)
-    # month = 201501
-    # for data in grouped['YEAR_MONTH'].values:
-    #     #print(data)
-    #     if data != month:
-    #         month = data
-    #     sample_df = grouped.loc[grouped['YEAR_MONTH'] == month]
-    #     fip_group = sample_df.groupby(['FIPS', 'EVENT_TYPE'], as_index=False).count()
-    #     #print(list(fip_group.values))
-    #     #print(fip_group['FIPS'][0])
-    #     tally = {}
-    #     fip = fip_group['FIPS'][0]
-    #     for event in fip_group.values:
-    #         if event[0] != fip:
-    #             #print(tally)
-    #             fip = event[0]
-    #             tally = {}
-    #         if event[1] not in tally:
-    #             tally[event[1]] = 1
-    #         else:
-    #             tally[event[1]] += 1
-    #grouped = grouped.reset_index()
-    #grouped = grouped.pivot(index='YEAR_MONTH', columns=w_df['EVENT_TYPE'].unique())
-    dup_w_df = w_df['EVENT_TYPE']
-    #joined_df = pd.merge(w_df, b_df, on='FIPS').merge(b_df, w_df, on='YEAR_MONTH')
+    combined = combined.astype(int)
+    combined.to_csv('../Datasets/Integrated2014.csv', ',')
 
     print("Analysis Complete")
 
